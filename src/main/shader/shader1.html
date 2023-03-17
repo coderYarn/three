@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>WebGL Red Triangle Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="myCanvas"></canvas>
+
+  <script>
+    // 获取画布元素
+    const canvas = document.getElementById('myCanvas');
+    // 获取 WebGL 上下文
+    const gl = canvas.getContext('webgl');
+
+    // 顶点着色器代码
+    const vertexShaderSource = `
+        attribute vec3 aPosition;
+        uniform mat4 u_Mat;
+        void main() {
+          gl_Position = u_Mat * vec4(aPosition, 1.0);
+        }
+      `;
+    // 片元着色器代码
+    const fragmentShaderSource = `
+        precision mediump float;
+
+        void main() {
+          gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
+      `;
+
+    // 创建顶点着色器
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, vertexShaderSource);
+    gl.compileShader(vertexShader);
+
+    // 创建片元着色器
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, fragmentShaderSource);
+    gl.compileShader(fragmentShader);
+
+    // 创建程序
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    gl.useProgram(program);
+
+    // 创建顶点缓冲区
+    const vertices = [
+      0.0, 0.5, 0.0,
+      -0.5, -0.5, 0.0,
+      0.5, -0.5, 0.0
+    ];
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    // 获取顶点着色器中的属性
+    const aPosition = gl.getAttribLocation(program, 'aPosition');
+    gl.enableVertexAttribArray(aPosition);
+    gl.vertexAttribPointer(aPosition, 3, gl.FLOAT, false, 0, 0);
+
+    const scale = {
+      x: 0.5,
+    }
+
+    // 清空画布
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+
+    // 绘制三角形
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    function animate() {
+      scale.x += 0.01;
+      const mat = new Float32Array([
+        scale.x, 0.0, 0.0, 0.0,
+        0.0, scale.x, 0.0, 0.0,
+        0.0, 0.0, scale.x, 0.0,
+        0.0, 0.0, 0.0, 1.2
+      ])
+      console.log(gl);
+      const u_Mat = gl.getUniformLocation(program, 'u_Mat');
+      gl.uniformMatrix4fv(u_Mat, false, mat);
+      requestAnimationFrame(animate)
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    // animate()
+  </script>
+</body>
+
+</html>
